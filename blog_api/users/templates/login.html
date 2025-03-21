@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/login.css/">
+</head>
+<body>
+<div>
+    <h2>LOGIN</h2>
+    <form id="loginForm">
+        <label  for="username">Username:</label>
+        <input id='username' type="username" id="username" required><br><br>
+        <label for="password">Password:</label>
+        <input  id='password'type="password" id="password" required><br><br>
+        <button type="submit">Login</button><br><br>
+        <a href="/register_page/">REGISTER</a><br><br>
+    </form>
+</div>
+<script src="/static/validateemailpassword.js/"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+        
+            fetch('http://127.0.0.1:8000/login-api/', {  
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.hasError) { 
+                    localStorage.setItem('access_token', data.data.access_token);  
+                    localStorage.setItem('refresh_token', data.data.refresh_token); 
+                    alert('Login successful');
+                    window.location.href = '/home/';  
+                } else {
+                    alert('Login failed: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });  
+
+
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Blogs</title>
+    <link rel="stylesheet" href="/static/public_list.css/">
+</head>
+<body>
+    <div id="blogPosts">
+        <h1>My Blogs</h1>
+        <div id="blogPosts">
+            <form method="get">
+                <table>
+                    <tr>
+                        <td><input type="text" name="title" id="title" placeholder="Search with name"></td> 
+                        <td><input type="submit" value="Search"></td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+        {% if data %}
+            {% for i in data %}
+                <div class="blog-post" id="blog-{{ i.id }}">
+                    <div class="title">{{ i.title }}</div>
+                    <div class="content">{{ i.content }}</div>
+                    <div class="date">Published on: {{ i.created_at }}</div>
+                    <a href='/users/edit_blog/?id={{ i.id }}' class='button'>Edit</a>
+                    <button class="delete-btn" data-id="{{ i.id }}" >Delete</button>
+                </div>
+            {% endfor %}
+
+            <div>
+                {% if data.has_previous %}
+                    <a href="?page=1">First</a>
+                    <a href="?page={{ data.previous_page_number }}">Previous</a>
+                {% endif %}
+    
+                <span>Page {{ data.number }} of {{ data.paginator.num_pages }}</span>
+    
+                {% if data.has_next %}
+                    <a href="?page={{ data.next_page_number }}">Next</a>
+                    <a href="?page={{ data.paginator.num_pages }}">Last</a>
+                {% endif %}
+            </div>
+        {% else %}
+            <p>No blogs found. Start writing your first blog</p>
+        {% endif %}
+    </div>
+
+    <script>
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const blogId = button.getAttribute('data-id');
+                const token = localStorage.getItem('access_token');
+
+                if (!token) {
+                    alert('You need to log in first!');
+                    return;
+                }
+
+                if (confirm('Are you sure you want to delete this blog post?')) {
+                    fetch(`http://127.0.0.1:8000/users/blog-api/${blogId}/`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            document.getElementById(`blog-${blogId}`).remove();
+                            alert('Blog post deleted successfully!');
+                        } else {
+                            alert('Failed to delete the blog post.');
+                        }
+                    })
+                    .catch(error => console.error('Error deleting blog post:', error));
+                }
+            });
+        });
+    </script>
+</body>
+</html>

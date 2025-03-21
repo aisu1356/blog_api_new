@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Blog Post</title>
+    <link rel="stylesheet" href="/static/create.css/">
+
+</head>
+<body>
+    <h1>EDIT BLOG POST</h1>
+    <div class="blog-container">
+        <form id="editBlogForm">
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <input type="text" id="title" required>
+            </div>
+
+            <div class="form-group">
+                <label for="content">Content:</label>
+                <textarea id="content" rows="5" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select id="status">
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                </select>
+            </div>
+
+            <button type="submit">Update Post</button>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const blogId = urlParams.get('id');  
+
+        const token = localStorage.getItem('access_token');
+
+        if (!blogId) {
+            alert('No blog ID found!');
+            window.location.href = '/blog_list/';
+        }
+
+        function fetchBlogDetails() {
+            fetch(`http://127.0.0.1:8000/users/blog-api/${blogId}/`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.id) {
+                    document.getElementById('title').value = data.title;
+                    document.getElementById('content').value = data.content;
+                    document.getElementById('status').value = data.status;
+                } else {
+                    alert('Blog not found!');
+                    window.location.href = '/blog_list/';
+                }
+            })
+            .catch(error => console.error('Error fetching blog details:', error));
+        }
+
+        fetchBlogDetails();
+
+        document.getElementById('editBlogForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const status = document.getElementById('status').value;
+
+            fetch(`http://127.0.0.1:8000/users/blog-api/${blogId}/`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, content, status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Response Data:", data);
+                if (data.hasError) {
+                    alert(`Error updating blog post: ${data.message}`);
+                } else {
+                    alert('Blog updated successfully!');
+                    window.location.href = '/blog_list/';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
